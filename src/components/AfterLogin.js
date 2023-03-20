@@ -3,7 +3,7 @@ import { useHistory } from "react-router-dom";
 import { useState } from "react";
 import classes from "./AfterLogin.module.css";
 import { NavLink } from "react-router-dom";
-
+import { type } from "@testing-library/user-event/dist/type";
 
 const AfterLogin = () => {
   const history = useHistory();
@@ -18,6 +18,7 @@ const AfterLogin = () => {
         </h4>
         <hr />
       </div>
+      <div></div>
     </>
   );
 };

@@ -39,6 +39,7 @@ const AddExpenseDetails = () => {
       )
       .then((response) => {
         console.log(response.data);
+        window.location.reload();
         setIsEditing(false);
       })
       .catch((error) => {
@@ -65,6 +66,7 @@ const AddExpenseDetails = () => {
       .then((response) => {
         console.log(response);
         setExpenses([...expenses, expenseList]);
+        window.location.reload();
       })
       .catch((error) => {
         console.log(error);
@@ -117,12 +119,14 @@ const AddExpenseDetails = () => {
       .then((response) => {
         if (response.data) {
           setPassExpenses(response.data);
+          console.log(response.data);
+          dispatch(expenseActions.receivedData(response.data));
         }
       })
       .catch((error) => {
         console.log(error);
       });
-  }, []);
+  }, [setPassExpenses]);
 
   {
     Object.keys(passExpenses).forEach((key) => {
