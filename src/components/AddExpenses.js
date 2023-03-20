@@ -3,10 +3,12 @@ import { Form, Button, Table } from "react-bootstrap";
 import classes from "./AddExpenses.module.css";
 import AuthContext from "./Context/Auth-Context";
 import axios from "axios";
-
-
+import { useSelector, useDispatch } from "react-redux";
+import { expenseActions } from "../store/expenses";
 
 const AddExpenseDetails = () => {
+  const dispatch = useDispatch();
+  let totalAmount = 0;
   const amountRef = useRef();
   const descriptionRef = useRef();
   const categoryRef = useRef();
@@ -15,10 +17,12 @@ const AddExpenseDetails = () => {
   const authCntx = useState(AuthContext);
   const [isEdititng, setIsEditing] = useState(false);
 
-  const emailStoredInLocalStorage = localStorage.getItem("email");
-  const userEmail = emailStoredInLocalStorage
-    ? emailStoredInLocalStorage.replace(/[^\w\s]/gi, "")
-    : "";
+  // const emailStoredInLocalStorage = useSelector((state) => state.authCntx.UserEmail);
+  // const UserEmail = emailStoredInLocalStorage.replace(/[^\w\s]/gi, "")
+
+  const LoggedInEmail = useSelector((state) => state.auth.userEmail);
+  // console.log(`emailOfLoggedInUser ${LoggedInEmail}`);
+  const UserEmail = LoggedInEmail.replace(/[@.]/g, "");
 
   const handleEditedUpdatation = () => {
     const key = localStorage.getItem("keyToEdit");
@@ -30,7 +34,7 @@ const AddExpenseDetails = () => {
     };
     axios
       .put(
-        `https://addexpenselist-default-rtdb.firebaseio.com/${userEmail}/${key}.json`,
+        `https://addexpenselist-default-rtdb.firebaseio.com/${UserEmail}/${key}.json`,
         editedExpense
       )
       .then((response) => {
@@ -42,20 +46,7 @@ const AddExpenseDetails = () => {
       });
   };
 
-  useEffect(() => {
-    axios
-      .get(
-        `https://addexpenselist-default-rtdb.firebaseio.com/${userEmail}.json`
-      )
-      .then((response) => {
-        if (response.data) {
-          setPassExpenses(response.data);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, [expenses]);
+  //
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -68,7 +59,7 @@ const AddExpenseDetails = () => {
 
     axios
       .post(
-        `https://addexpenselist-default-rtdb.firebaseio.com/${userEmail}.json`,
+        `https://addexpenselist-default-rtdb.firebaseio.com/${UserEmail}.json`,
         expenseList
       )
       .then((response) => {
@@ -79,7 +70,7 @@ const AddExpenseDetails = () => {
         console.log(error);
       });
 
-    console.log(userEmail);
+    console.log(UserEmail);
 
     amountRef.current.value = "";
     descriptionRef.current.value = "";
@@ -88,7 +79,7 @@ const AddExpenseDetails = () => {
   const handleDelete = (key) => {
     axios
       .delete(
-        `https://addexpenselist-default-rtdb.firebaseio.com/${userEmail}/${key}.json`
+        `https://addexpenselist-default-rtdb.firebaseio.com/${UserEmail}/${key}.json`
       )
       .then((response) => {
         console.log("Expense successfully deleted");
@@ -107,7 +98,7 @@ const AddExpenseDetails = () => {
     setIsEditing(true);
     axios
       .get(
-        `https://addexpenselist-default-rtdb.firebaseio.com/${userEmail}/${key}.json`
+        `https://addexpenselist-default-rtdb.firebaseio.com/${UserEmail}/${key}.json`
       )
       .then((response) => {
         amountRef.current.value = response.data.amount;
@@ -118,60 +109,83 @@ const AddExpenseDetails = () => {
         console.log(error);
       });
   };
- 
+  useEffect(() => {
+    axios
+      .get(
+        `https://addexpenselist-default-rtdb.firebaseio.com/${UserEmail}.json`
+      )
+      .then((response) => {
+        if (response.data) {
+          setPassExpenses(response.data);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+
+  {
+    Object.keys(passExpenses).forEach((key) => {
+      totalAmount += +passExpenses[key].amount;
+    });
+  }
+
+  if (totalAmount > 10000) {
+    dispatch(expenseActions.Premium());
+  } else {
+    dispatch(expenseActions.notPremium());
+  }
 
   return (
-    <div>
-      <div className={classes.expense}>
-        <h2 className="text-center">Daily Expense Tracker</h2>
-        <Form onSubmit={handleSubmit} className="container">
-          <Form.Group controlId="amount">
-            <Form.Label>Amount:</Form.Label>
-            <Form.Control
-              type="number"
-              placeholder="amount"
-              ref={amountRef}
-              required
-            />
-          </Form.Group>
-          <Form.Group controlId="description">
-            <Form.Label>Description:</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="description"
-              ref={descriptionRef}
-              required
-            />
-          </Form.Group>
-          <Form.Group controlId="category">
-            <Form.Label>Category:</Form.Label>
-            <Form.Select as="select" ref={categoryRef} required>
-              <option value="">--Choose Category--</option>
-              <option value="Food">Food</option>
-              <option value="Petrol">Petrol</option>
-              <option value="Salary">Salary</option>
-            </Form.Select>
-          </Form.Group>
-          <div className="text-center">
-            {!isEdititng && (
-              <Button variant="primary" type="submit" className="mt-3">
-                Add Expense
-              </Button>
-            )}
-            {isEdititng && (
-              <Button
-                variant="info"
-                type="submit"
-                className="mt-3"
-                onClick={handleEditedUpdatation}
-              >
-                Update Expense
-              </Button>
-            )}
-          </div>{" "}
-        </Form>{" "}
-      </div>
-      <h3 className="text-center mt-1 text-white">Expenses</h3>
+    <div className={classes.expense}>
+      <h2 className="text-center">Daily Expense Tracker</h2>
+      <Form onSubmit={handleSubmit} className="container">
+        <Form.Group controlId="amount">
+          <Form.Label>Amount:</Form.Label>
+          <Form.Control
+            type="number"
+            placeholder="amount"
+            ref={amountRef}
+            required
+          />
+        </Form.Group>
+        <Form.Group controlId="description">
+          <Form.Label>Description:</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="description"
+            ref={descriptionRef}
+            required
+          />
+        </Form.Group>
+        <Form.Group controlId="category">
+          <Form.Label>Category:</Form.Label>
+          <Form.Select as="select" ref={categoryRef} required>
+            <option value="">--Choose Category--</option>
+            <option value="Food">Food</option>
+            <option value="Petrol">Petrol</option>
+            <option value="Salary">Salary</option>
+          </Form.Select>
+        </Form.Group>
+        <div className="text-center">
+          {!isEdititng && (
+            <Button variant="primary" type="submit" className="mt-3">
+              Add Expense
+            </Button>
+          )}
+          {isEdititng && (
+            <Button
+              variant="info"
+              type="submit"
+              className="mt-3"
+              onClick={handleEditedUpdatation}
+            >
+              Update Expense
+            </Button>
+          )}
+        </div>{" "}
+      </Form>{" "}
+      <h3 className="text-center mt-1 text-white">Expenses of {UserEmail}</h3>
       <Table striped bordered hover variant="light" className="container">
         <thead>
           <tr>
@@ -201,7 +215,8 @@ const AddExpenseDetails = () => {
             </tr>
           ))}
         </tbody>
-      </Table>
+      </Table>{" "}
+      <h1 className="text-white">Total amount: {totalAmount}.00</h1>
     </div>
   );
 };

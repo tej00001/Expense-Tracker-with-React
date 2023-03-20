@@ -1,11 +1,13 @@
-import React, { useContext } from "react";
+import React, { useState, useRef, useContext } from "react";
 import classes from "./login.module.css";
 import { Button, Form, Nav } from "react-bootstrap";
-import { useState, useRef } from "react";
 import { NavLink, useHistory } from "react-router-dom";
 import AuthContext from "../Context/Auth-Context";
+import { useDispatch } from "react-redux";
+import { authActions } from "../../store/auth";
 
 const LoginPage = () => {
+  const dispatch = useDispatch();
   const history = useHistory();
   const emailInputRef = useRef();
   const passwordInputRef = useRef();
@@ -94,7 +96,10 @@ const LoginPage = () => {
         })
         .then((data) => {
           console.log(data);
-          authCtx.login(data.idToken);
+          // authCtx.login(data.idToken);
+          dispatch(
+            authActions.login({ token: data.idToken, email: data.email })
+          );
           history.replace("/AddExpenseDetails");
           // history.push("/verify-email");
           // history.replace("/showHandler");
@@ -103,7 +108,7 @@ const LoginPage = () => {
           // If user profile is incomplete, show a message to the user
           // if (userProfileIncomplete) {
           //   alert("Your profile is incomplete. Please update your profile.");
-          //   // history.push("/completeProfile");
+          // history.replace("/completeProfile");
           // }
         })
         .catch((err) => {

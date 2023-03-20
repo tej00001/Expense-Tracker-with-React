@@ -9,10 +9,11 @@ import VerifyDetails from "./components/verifyPage";
 import { Redirect } from "react-router-dom";
 import AddExpenseDetails from "./components/AddExpenses";
 import AuthContext from "./components/Context/Auth-Context";
-
+import { useSelector } from "react-redux";
 
 function App() {
- 
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+
   return (
     <Router>
       <FirstPageDetails />
@@ -29,13 +30,17 @@ function App() {
         <Route path="/verify-email">
           <VerifyDetails />
         </Route>
-        <Route exact path="/showHandler">
+        {/* <Route exact path="/showHandler">
+         <AfterLogin />
+        </Route> */}
+        <Route exact path="/HomeDetails">
           <AfterLogin />
         </Route>
-        <Route path="/AddExpenseDetails">
+        <Route exact path="/AddExpenseDetails">
           <AddExpenseDetails />
         </Route>
-         <Route exact path="/completeProfile">
+
+        <Route exact path="/completeProfile">
           <CompleteProfile />
         </Route>
       </Switch>
